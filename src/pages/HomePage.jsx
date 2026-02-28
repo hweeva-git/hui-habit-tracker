@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useTasks } from '../hooks/useTasks'
+import { useHabits } from '../hooks/useHabits'
 import TaskForm from '../components/TaskForm'
 import TaskItem from '../components/TaskItem'
 import { useNotification } from '../hooks/useNotification'
@@ -8,24 +8,38 @@ import { useNotification } from '../hooks/useNotification'
 const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토']
 const MONTHS_KR = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
+const toDateKey = (date) => date.toISOString().split('T')[0]
+
+const formatDate = (dateKey) => {
+  const d = new Date(dateKey + 'T00:00:00')
+  return `${d.getFullYear()}년 ${MONTHS_KR[d.getMonth()]} ${d.getDate()}일 (${DAYS_KR[d.getDay()]})`
+}
+
 export default function HomePage() {
   const { user, logout } = useAuth()
-  const { tasks, loading, addTask, toggleTask, deleteTask, updateTask } = useTasks()
+  const todayKey = toDateKey(new Date())
+  const [selectedDate, setSelectedDate] = useState(todayKey)
+  const { habits, loading, addHabit, addHabits, toggleHabit, deleteHabit, updateHabit } = useHabits(selectedDate)
   const { permissionStatus, requestPermission, scheduleTasks } = useNotification()
   const [showForm, setShowForm] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
 
   useEffect(() => {
     if (!loading) {
-      scheduleTasks(tasks)
+      scheduleTasks(habits)
     }
-  }, [tasks, loading, permissionStatus])
+  }, [habits, loading, permissionStatus])
 
-  const now = new Date()
-  const dateStr = `${now.getFullYear()}년 ${MONTHS_KR[now.getMonth()]} ${now.getDate()}일 (${DAYS_KR[now.getDay()]})`
+  const isToday = selectedDate === todayKey
 
-  const completedCount = tasks.filter((t) => t.completed).length
-  const totalCount = tasks.length
+  const moveDate = (days) => {
+    const d = new Date(selectedDate + 'T00:00:00')
+    d.setDate(d.getDate() + days)
+    setSelectedDate(toDateKey(d))
+  }
+
+  const completedCount = habits.filter((h) => h.completed).length
+  const totalCount = habits.length
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   return (
@@ -65,22 +79,55 @@ export default function HomePage() {
             )}
           </div>
         </div>
+
+        {/* 날짜 네비게이션 */}
+        <div className="max-w-lg mx-auto px-4 pb-3 flex items-center justify-between">
+          <button
+            onClick={() => moveDate(-1)}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-gray-700 text-sm">{formatDate(selectedDate)}</span>
+            {!isToday && (
+              <button
+                onClick={() => setSelectedDate(todayKey)}
+                className="text-xs bg-indigo-100 text-indigo-600 font-medium px-2.5 py-1 rounded-lg hover:bg-indigo-200 transition-colors"
+              >
+                오늘
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={() => moveDate(1)}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
         <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl p-6 text-white">
-          <p className="text-indigo-200 text-sm">{dateStr}</p>
+          <p className="text-indigo-200 text-sm">{formatDate(selectedDate)}</p>
           <p className="text-2xl font-bold mt-1">
             {totalCount === 0
               ? '습관을 추가해보세요!'
               : completedCount === totalCount
-              ? '오늘 모두 완료했어요! 🎉'
+              ? '모두 완료했어요! 🎉'
               : `${completedCount}/${totalCount}개 완료`}
           </p>
           {totalCount > 0 && (
             <div className="mt-4">
               <div className="flex justify-between text-sm text-indigo-200 mb-1">
-                <span>오늘의 진행률</span>
+                <span>진행률</span>
                 <span>{progress}%</span>
               </div>
               <div className="w-full bg-indigo-400/40 rounded-full h-2">
@@ -93,7 +140,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {permissionStatus !== 'granted' && (
+        {permissionStatus !== 'granted' && isToday && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
             <span className="text-2xl">🔔</span>
             <div className="flex-1">
@@ -111,7 +158,9 @@ export default function HomePage() {
 
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-700">오늘의 습관</h2>
+            <h2 className="font-semibold text-gray-700">
+              {isToday ? '오늘의 습관' : '이 날의 습관'}
+            </h2>
             <button
               onClick={() => setShowForm(true)}
               className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
@@ -125,21 +174,21 @@ export default function HomePage() {
 
           {loading ? (
             <div className="text-center py-12 text-gray-400">불러오는 중...</div>
-          ) : tasks.length === 0 ? (
+          ) : habits.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">📋</div>
-              <p className="text-gray-500 font-medium">아직 등록된 습관이 없어요</p>
-              <p className="text-gray-400 text-sm mt-1">상단 추가 버튼을 눌러 첫 습관을 만들어보세요</p>
+              <p className="text-gray-500 font-medium">등록된 습관이 없어요</p>
+              <p className="text-gray-400 text-sm mt-1">추가 버튼을 눌러 습관을 만들어보세요</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {tasks.map((task) => (
+              {habits.map((habit) => (
                 <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggle={toggleTask}
-                  onDelete={deleteTask}
-                  onUpdate={updateTask}
+                  key={habit.id}
+                  task={habit}
+                  onToggle={(habitId) => toggleHabit(habitId, habit.completionDocId, habit.completed)}
+                  onDelete={deleteHabit}
+                  onUpdate={updateHabit}
                 />
               ))}
             </div>
@@ -147,7 +196,13 @@ export default function HomePage() {
         </section>
       </main>
 
-      {showForm && <TaskForm onAdd={addTask} onClose={() => setShowForm(false)} />}
+      {showForm && (
+        <TaskForm
+          onAdd={addHabit}
+          onAddMultiple={addHabits}
+          onClose={() => setShowForm(false)}
+        />
+      )}
     </div>
   )
 }

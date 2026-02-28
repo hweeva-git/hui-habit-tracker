@@ -15,7 +15,7 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
         }`}
       >
         <button
-          onClick={() => onToggle(task.id, task.completed)}
+          onClick={() => onToggle(task.id)}
           className={`w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
             task.completed
               ? 'bg-green-500 border-green-500'
@@ -33,14 +33,24 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
           <p className={`font-medium truncate ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
             {task.name}
           </p>
-          {task.alertTime && (
-            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {task.alertTime}
-            </p>
-          )}
+          <div className="flex items-center gap-2 mt-0.5">
+            {task.alertTime && (
+              <p className="text-xs text-gray-400 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {task.alertTime}
+              </p>
+            )}
+            {task.isRecurring && (
+              <p className="text-xs text-indigo-400 flex items-center gap-0.5">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                매일
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="relative">
