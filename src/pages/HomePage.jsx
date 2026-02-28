@@ -108,12 +108,16 @@ export default function HomePage() {
 
           <div className="flex items-center gap-2">
             <span className="font-semibold text-gray-700 text-sm">{formatDate(selectedDate)}</span>
-            {!isToday && (
+            {isToday ? (
+              <span className="text-xs bg-indigo-100 text-indigo-600 font-medium px-2.5 py-1 rounded-lg">
+                오늘
+              </span>
+            ) : (
               <button
                 onClick={() => setSelectedDate(todayKey)}
-                className="text-xs bg-indigo-100 text-indigo-600 font-medium px-2.5 py-1 rounded-lg hover:bg-indigo-200 transition-colors"
+                className="text-xs bg-gray-100 text-gray-500 font-medium px-2.5 py-1 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                오늘
+                오늘로
               </button>
             )}
           </div>
