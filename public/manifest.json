@@ -1,0 +1,16 @@
+{
+  "name": "습관 트래커",
+  "short_name": "습관",
+  "description": "매일의 습관을 기록하고 알림 받으세요",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
