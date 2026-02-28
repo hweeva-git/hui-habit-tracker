@@ -8,7 +8,12 @@ import { useNotification } from '../hooks/useNotification'
 const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토']
 const MONTHS_KR = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
-const toDateKey = (date) => date.toISOString().split('T')[0]
+const toDateKey = (date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 
 const formatDate = (dateKey) => {
   const d = new Date(dateKey + 'T00:00:00')
