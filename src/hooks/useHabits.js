@@ -75,6 +75,11 @@ export function useHabits(selectedDate) {
   const visibleHabits = habits.filter((habit) => {
     const repeatType = habit.repeatType ?? (habit.isRecurring ? 'daily' : 'once')
 
+    const startDate = habit.startDate
+      ?? (habit.createdAt?.toDate ? habit.createdAt.toDate().toISOString().split('T')[0] : null)
+
+    if (startDate && selectedDate < startDate) return false
+
     if (repeatType === 'daily') return true
 
     if (repeatType === 'weekly') {
@@ -83,8 +88,6 @@ export function useHabits(selectedDate) {
     }
 
     // once
-    const startDate = habit.startDate
-      ?? (habit.createdAt?.toDate ? habit.createdAt.toDate().toISOString().split('T')[0] : null)
     return startDate === selectedDate
   })
 
