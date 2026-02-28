@@ -214,7 +214,6 @@ export default function HomePage() {
       {showForm && (
         <TaskForm
           onAdd={addHabit}
-          onAddMultiple={addHabits}
           onClose={() => setShowForm(false)}
         />
       )}
