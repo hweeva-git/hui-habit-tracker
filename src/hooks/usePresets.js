@@ -22,26 +22,39 @@ export function usePresets() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const fetchPresets = async () => {
-      const ref = doc(db, 'userSettings', user.uid)
-      const snap = await getDoc(ref)
-      if (snap.exists() && snap.data().presets) {
-        setPresets(snap.data().presets)
-      } else {
-        await setDoc(ref, { presets: DEFAULT_PRESETS }, { merge: true })
+      try {
+        const ref = doc(db, 'userSettings', user.uid)
+        const snap = await getDoc(ref)
+        if (snap.exists() && snap.data().presets) {
+          setPresets(snap.data().presets)
+        } else {
+          await setDoc(ref, { presets: DEFAULT_PRESETS }, { merge: true })
+          setPresets(DEFAULT_PRESETS)
+        }
+      } catch (e) {
+        console.error('usePresets 로드 오류:', e)
         setPresets(DEFAULT_PRESETS)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     fetchPresets()
   }, [user])
 
   const savePresets = async (newPresets) => {
-    const ref = doc(db, 'userSettings', user.uid)
-    await setDoc(ref, { presets: newPresets }, { merge: true })
+    try {
+      const ref = doc(db, 'userSettings', user.uid)
+      await setDoc(ref, { presets: newPresets }, { merge: true })
+    } catch (e) {
+      console.error('usePresets 저장 오류:', e)
+    }
     setPresets(newPresets)
   }
 
