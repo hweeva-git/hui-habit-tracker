@@ -31,6 +31,7 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
 
         <div className="flex-1 min-w-0">
           <p className={`font-medium truncate ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+            {task.emoji && <span className="mr-1.5">{task.emoji}</span>}
             {task.name}
           </p>
           <div className="flex items-center gap-2 mt-0.5">

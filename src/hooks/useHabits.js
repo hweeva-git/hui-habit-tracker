@@ -94,10 +94,11 @@ export function useHabits(selectedDate) {
     completionDocId: completions[habit.id]?.id ?? null,
   }))
 
-  const addHabit = async (name, alertTime, repeatType = 'daily', repeatDays = []) => {
+  const addHabit = async (name, alertTime, repeatType = 'daily', repeatDays = [], emoji = '💧') => {
     await addDoc(collection(db, 'habits'), {
       uid: user.uid,
       name,
+      emoji,
       alertTime,
       repeatType,
       repeatDays,
@@ -148,9 +149,10 @@ export function useHabits(selectedDate) {
     await deleteDoc(doc(db, 'habits', habitId))
   }
 
-  const updateHabit = async (habitId, name, alertTime, repeatType, repeatDays) => {
+  const updateHabit = async (habitId, name, alertTime, repeatType, repeatDays, emoji) => {
     await updateDoc(doc(db, 'habits', habitId), {
       name,
+      emoji: emoji ?? '💧',
       alertTime,
       repeatType,
       repeatDays: repeatDays ?? [],

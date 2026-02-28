@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
+const EMOJIS = ['💧', '🏃', '📚', '🧘', '🌅', '💊', '✏️', '🎯']
 
 function RepeatSelector({ repeatType, setRepeatType, repeatDays, setRepeatDays }) {
   const toggleDay = (day) => {
@@ -57,6 +58,7 @@ function RepeatSelector({ repeatType, setRepeatType, repeatDays, setRepeatDays }
 
 export default function TaskForm({ onAdd, onClose }) {
   const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState(EMOJIS[0])
   const [alertTime, setAlertTime] = useState('')
   const [repeatType, setRepeatType] = useState('daily')
   const [repeatDays, setRepeatDays] = useState([])
@@ -67,7 +69,7 @@ export default function TaskForm({ onAdd, onClose }) {
     if (!name.trim()) return
     if (repeatType === 'weekly' && repeatDays.length === 0) return
     setLoading(true)
-    await onAdd(name.trim(), alertTime, repeatType, repeatDays)
+    await onAdd(name.trim(), alertTime, repeatType, repeatDays, emoji)
     setLoading(false)
     onClose()
   }
@@ -77,6 +79,25 @@ export default function TaskForm({ onAdd, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 className="text-lg font-bold text-gray-800">습관 추가</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+            <div className="flex gap-1.5">
+              {EMOJIS.map((e) => (
+                <button
+                  type="button"
+                  key={e}
+                  onClick={() => setEmoji(e)}
+                  className={`flex-1 text-2xl py-2 rounded-xl border-2 transition-all ${
+                    emoji === e
+                      ? 'border-indigo-400 bg-indigo-50'
+                      : 'border-transparent bg-gray-50 hover:bg-gray-100'
+                  }`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">습관 이름</label>
             <input
