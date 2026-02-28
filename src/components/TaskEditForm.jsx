@@ -1,15 +1,28 @@
 import { useState } from 'react'
 
+const DAYS = ['일', '월', '화', '수', '목', '금', '토']
+
 export default function TaskEditForm({ task, onUpdate, onClose }) {
   const [name, setName] = useState(task.name)
   const [alertTime, setAlertTime] = useState(task.alertTime || '')
+  const [repeatType, setRepeatType] = useState(
+    task.repeatType ?? (task.isRecurring ? 'daily' : 'once')
+  )
+  const [repeatDays, setRepeatDays] = useState(task.repeatDays ?? [])
   const [loading, setLoading] = useState(false)
+
+  const toggleDay = (day) => {
+    setRepeatDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    )
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!name.trim()) return
+    if (repeatType === 'weekly' && repeatDays.length === 0) return
     setLoading(true)
-    await onUpdate(task.id, name.trim(), alertTime)
+    await onUpdate(task.id, name.trim(), alertTime, repeatType, repeatDays)
     setLoading(false)
     onClose()
   }
@@ -41,6 +54,48 @@ export default function TaskEditForm({ task, onUpdate, onClose }) {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">반복</label>
+            <div className="flex gap-2">
+              {[
+                { value: 'once', label: '오늘 하루만', icon: '1️⃣' },
+                { value: 'weekly', label: '특정 요일만', icon: '📅' },
+                { value: 'daily', label: '매일', icon: '🔁' },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setRepeatType(opt.value)}
+                  className={`flex-1 flex flex-col items-center py-2 px-1 rounded-xl border text-xs font-medium transition-all ${
+                    repeatType === opt.value
+                      ? 'bg-indigo-50 border-indigo-400 text-indigo-700'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-indigo-200'
+                  }`}
+                >
+                  <span className="text-base mb-0.5">{opt.icon}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {repeatType === 'weekly' && (
+              <div className="flex gap-1.5 mt-2">
+                {DAYS.map((day, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => toggleDay(i)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      repeatDays.includes(i)
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -51,7 +106,11 @@ export default function TaskEditForm({ task, onUpdate, onClose }) {
             </button>
             <button
               type="submit"
-              disabled={loading || !name.trim()}
+              disabled={
+                loading ||
+                !name.trim() ||
+                (repeatType === 'weekly' && repeatDays.length === 0)
+              }
               className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl font-semibold transition-colors"
             >
               {loading ? '저장 중...' : '저장하기'}

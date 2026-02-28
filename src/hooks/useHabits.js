@@ -9,7 +9,6 @@ import {
   query,
   where,
   getDocs,
-  setDoc,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
@@ -21,7 +20,6 @@ export function useHabits(selectedDate) {
   const [completions, setCompletions] = useState({})
   const [loading, setLoading] = useState(true)
 
-  // habits 실시간 구독
   useEffect(() => {
     if (!user) return
 
@@ -50,7 +48,6 @@ export function useHabits(selectedDate) {
     return unsubscribe
   }, [user])
 
-  // 선택된 날짜의 completions 로드
   useEffect(() => {
     if (!user || !selectedDate) return
 
@@ -72,13 +69,23 @@ export function useHabits(selectedDate) {
     fetchCompletions()
   }, [user, selectedDate])
 
-  // 선택된 날짜에 표시할 habits 필터링
+  const getDayOfWeek = (dateKey) =>
+    new Date(dateKey + 'T00:00:00').getDay()
+
   const visibleHabits = habits.filter((habit) => {
-    if (habit.isRecurring) return true
-    const createdDate = habit.createdAt?.toDate
-      ? habit.createdAt.toDate().toISOString().split('T')[0]
-      : habit.startDate
-    return createdDate === selectedDate
+    const repeatType = habit.repeatType ?? (habit.isRecurring ? 'daily' : 'once')
+
+    if (repeatType === 'daily') return true
+
+    if (repeatType === 'weekly') {
+      const dow = getDayOfWeek(selectedDate)
+      return Array.isArray(habit.repeatDays) && habit.repeatDays.includes(dow)
+    }
+
+    // once
+    const startDate = habit.startDate
+      ?? (habit.createdAt?.toDate ? habit.createdAt.toDate().toISOString().split('T')[0] : null)
+    return startDate === selectedDate
   })
 
   const habitsWithCompletion = visibleHabits.map((habit) => ({
@@ -87,12 +94,13 @@ export function useHabits(selectedDate) {
     completionDocId: completions[habit.id]?.id ?? null,
   }))
 
-  const addHabit = async (name, alertTime, isRecurring = true) => {
+  const addHabit = async (name, alertTime, repeatType = 'daily', repeatDays = []) => {
     await addDoc(collection(db, 'habits'), {
       uid: user.uid,
       name,
       alertTime,
-      isRecurring,
+      repeatType,
+      repeatDays,
       startDate: selectedDate,
       createdAt: serverTimestamp(),
     })
@@ -105,7 +113,8 @@ export function useHabits(selectedDate) {
           uid: user.uid,
           name: item.name,
           alertTime: item.alertTime || '',
-          isRecurring: item.isRecurring ?? true,
+          repeatType: item.repeatType ?? 'daily',
+          repeatDays: item.repeatDays ?? [],
           startDate: selectedDate,
           createdAt: serverTimestamp(),
         })
@@ -139,8 +148,13 @@ export function useHabits(selectedDate) {
     await deleteDoc(doc(db, 'habits', habitId))
   }
 
-  const updateHabit = async (habitId, name, alertTime) => {
-    await updateDoc(doc(db, 'habits', habitId), { name, alertTime })
+  const updateHabit = async (habitId, name, alertTime, repeatType, repeatDays) => {
+    await updateDoc(doc(db, 'habits', habitId), {
+      name,
+      alertTime,
+      repeatType,
+      repeatDays: repeatDays ?? [],
+    })
   }
 
   return {

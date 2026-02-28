@@ -42,14 +42,26 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
                 {task.alertTime}
               </p>
             )}
-            {task.isRecurring && (
-              <p className="text-xs text-indigo-400 flex items-center gap-0.5">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                매일
-              </p>
-            )}
+            {(() => {
+              const rt = task.repeatType ?? (task.isRecurring ? 'daily' : 'once')
+              if (rt === 'once') return null
+              const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토']
+              const label =
+                rt === 'daily'
+                  ? '매일'
+                  : rt === 'weekly' && Array.isArray(task.repeatDays) && task.repeatDays.length > 0
+                  ? task.repeatDays.map((d) => DAYS_KR[d]).join('·') + '요일'
+                  : null
+              if (!label) return null
+              return (
+                <p className="text-xs text-indigo-400 flex items-center gap-0.5">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {label}
+                </p>
+              )
+            })()}
           </div>
         </div>
 
