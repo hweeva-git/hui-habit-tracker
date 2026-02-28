@@ -32,10 +32,20 @@ export default function HomePage() {
 
   const isToday = selectedDate === todayKey
 
+  const maxFutureKey = (() => {
+    const d = new Date(todayKey + 'T00:00:00')
+    d.setDate(d.getDate() + 14)
+    return toDateKey(d)
+  })()
+
+  const isMaxFuture = selectedDate >= maxFutureKey
+
   const moveDate = (days) => {
     const d = new Date(selectedDate + 'T00:00:00')
     d.setDate(d.getDate() + days)
-    setSelectedDate(toDateKey(d))
+    const next = toDateKey(d)
+    if (next > maxFutureKey) return
+    setSelectedDate(next)
   }
 
   const completedCount = habits.filter((h) => h.completed).length
@@ -105,7 +115,12 @@ export default function HomePage() {
 
           <button
             onClick={() => moveDate(1)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+            disabled={isMaxFuture}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              isMaxFuture
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-500 hover:bg-gray-100'
+            }`}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
