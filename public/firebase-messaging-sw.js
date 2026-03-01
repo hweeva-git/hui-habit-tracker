@@ -14,10 +14,14 @@ firebase.initializeApp({
 const messaging = firebase.messaging()
 
 messaging.onBackgroundMessage((payload) => {
-  const { title, body, icon } = payload.notification || {}
+  // notification 필드가 있으면 FCM이 자동으로 표시하므로 중복 방지
+  if (payload.notification) return
+
+  // data-only 메시지인 경우 직접 표시
+  const { title, body } = payload.data || {}
   self.registration.showNotification(title || '습관 트래커', {
     body: body || '습관 알림이 도착했어요!',
-    icon: icon || '/icon-192.png',
+    icon: '/icon-192.png',
     badge: '/icon-192.png',
     requireInteraction: true,
     vibrate: [200, 100, 200],

@@ -75,12 +75,10 @@ exports.sendHabitNotifications = onSchedule(
 
       const message = {
         token,
-        notification: {
-          title: '습관 트래커',
-          body: `지금 "${habit.name}" 할 시간이에요!`,
-        },
         webpush: {
           notification: {
+            title: '습관 트래커',
+            body: `지금 "${habit.name}" 할 시간이에요!`,
             icon: '/icon-192.png',
             badge: '/icon-192.png',
             requireInteraction: true,
@@ -92,6 +90,8 @@ exports.sendHabitNotifications = onSchedule(
         },
         android: {
           notification: {
+            title: '습관 트래커',
+            body: `지금 "${habit.name}" 할 시간이에요!`,
             channelId: 'habit-alerts',
             priority: 'high',
             defaultSound: true,
@@ -100,6 +100,10 @@ exports.sendHabitNotifications = onSchedule(
         apns: {
           payload: {
             aps: {
+              alert: {
+                title: '습관 트래커',
+                body: `지금 "${habit.name}" 할 시간이에요!`,
+              },
               sound: 'default',
               badge: 1,
             },
