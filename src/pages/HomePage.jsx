@@ -28,6 +28,9 @@ export default function HomePage() {
   const { permissionStatus, requestPermission, scheduleTasks } = useNotification(user)
   const [showForm, setShowForm] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [notifBannerDismissed] = useState(
+    () => localStorage.getItem('notif_requested') === 'true'
+  )
 
   useEffect(() => {
     scheduleTasks(habits)
@@ -169,7 +172,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {permissionStatus !== 'granted' && isToday && (
+        {permissionStatus !== 'granted' && !notifBannerDismissed && isToday && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
             <span className="text-2xl">🔔</span>
             <div className="flex-1">
@@ -177,7 +180,10 @@ export default function HomePage() {
               <p className="text-xs text-amber-600">설정한 시간에 습관 알림을 받으려면 허용해 주세요.</p>
             </div>
             <button
-              onClick={requestPermission}
+              onClick={() => {
+                localStorage.setItem('notif_requested', 'true')
+                requestPermission()
+              }}
               className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors flex-shrink-0"
             >
               허용
