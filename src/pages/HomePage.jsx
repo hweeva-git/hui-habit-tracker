@@ -25,15 +25,20 @@ export default function HomePage() {
   const todayKey = toDateKey(new Date())
   const [selectedDate, setSelectedDate] = useState(todayKey)
   const { habits, loading, addHabit, addHabits, toggleHabit, deleteHabit, updateHabit } = useHabits(selectedDate)
-  const { permissionStatus, requestPermission, scheduleTasks } = useNotification()
+  const { permissionStatus, requestPermission, scheduleTasks } = useNotification(user)
   const [showForm, setShowForm] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
 
   useEffect(() => {
-    if (!loading) {
-      scheduleTasks(habits)
-    }
+    scheduleTasks(habits)
   }, [habits, loading, permissionStatus])
+
+  // 이미 알림 권한이 허용된 사용자는 로그인 시 FCM 토큰 자동 등록
+  useEffect(() => {
+    if (user && permissionStatus === 'granted') {
+      requestPermission()
+    }
+  }, [user])
 
   const isToday = selectedDate === todayKey
 

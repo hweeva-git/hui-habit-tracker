@@ -1,57 +1,55 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState } from 'react'
+import { getToken } from 'firebase/messaging'
+import { doc, setDoc } from 'firebase/firestore'
+import { getMessagingInstance } from '../firebase/config'
+import { db } from '../firebase/config'
 
-export function useNotification() {
+export function useNotification(user) {
   const [permissionStatus, setPermissionStatus] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   )
-  const timerRefs = useRef([])
+
+  const registerFcmToken = async () => {
+    if (typeof Notification === 'undefined') return
+    if (!user) return
+
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
+    if (!vapidKey) {
+      console.warn('VITE_FIREBASE_VAPID_KEY 환경변수가 설정되지 않았습니다.')
+      return
+    }
+
+    try {
+      const messaging = await getMessagingInstance()
+      if (!messaging) return
+
+      const token = await getToken(messaging, { vapidKey })
+      if (!token) return
+
+      await setDoc(doc(db, 'fcmTokens', user.uid), {
+        token,
+        updatedAt: new Date().toISOString(),
+      })
+    } catch (err) {
+      console.error('FCM 토큰 등록 실패:', err)
+    }
+  }
 
   const requestPermission = async () => {
-    if (typeof Notification === 'undefined') return
+    if (typeof Notification === 'undefined') return 'unsupported'
+
     const result = await Notification.requestPermission()
     setPermissionStatus(result)
+
+    if (result === 'granted') {
+      await registerFcmToken()
+    }
+
     return result
   }
 
-  const clearScheduled = () => {
-    timerRefs.current.forEach((id) => clearTimeout(id))
-    timerRefs.current = []
-  }
-
-  const scheduleTasks = (tasks) => {
-    clearScheduled()
-    if (permissionStatus !== 'granted') return
-
-    const now = new Date()
-    const todayBase = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-    tasks.forEach((task) => {
-      if (!task.alertTime || task.completed) return
-
-      const [hours, minutes] = task.alertTime.split(':').map(Number)
-      const alertDate = new Date(todayBase)
-      alertDate.setHours(hours, minutes, 0, 0)
-
-      const delay = alertDate.getTime() - now.getTime()
-      if (delay <= 0) return
-
-      const timerId = setTimeout(() => {
-        new Notification('습관 트래커', {
-          body: `지금 "${task.name}" 할 시간이에요!`,
-          icon: '/favicon.svg',
-          badge: '/favicon.svg',
-          tag: task.id,
-          renotify: true,
-        })
-      }, delay)
-
-      timerRefs.current.push(timerId)
-    })
-  }
-
-  useEffect(() => {
-    return () => clearScheduled()
-  }, [])
+  // 기존 코드와의 호환성을 위해 scheduleTasks는 빈 함수로 유지
+  const scheduleTasks = () => {}
 
   return { permissionStatus, requestPermission, scheduleTasks }
 }

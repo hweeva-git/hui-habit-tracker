@@ -10,8 +10,10 @@ self.addEventListener('message', (event) => {
       const { title, body, icon } = payload.notification || {}
       self.registration.showNotification(title || '습관 트래커', {
         body: body || '습관 알림이 도착했어요!',
-        icon: icon || '/favicon.svg',
-        badge: '/favicon.svg',
+        icon: icon || '/icon-192.png',
+        badge: '/icon-192.png',
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
       })
     })
   }
